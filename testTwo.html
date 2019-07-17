@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Test 2</title>
+  <style>
+    h1,h2,h3,h4,h5,h6{
+      margin:5px;;
+    }
+    body{
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .test{
+      padding-left:50px;
+    }
+    .infowindow{
+   border:blue solid chartreuse;
+    }
+  #map {
+    height: 100%;
+    width: 100%; 
+    }
+  #rightBar{
+    overflow: scroll;
+    width:25%;
+    background:rgb(242, 243, 244);
+    border-left: white solid 6px;
+  }
+  .review{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    margin:5px;
+    height:15%;
+    width:85%;
+    border-top:white solid 1px;
+    border-bottom:white solid 1px;
+    padding:15px;
+  }
+  .reviewInner{
+    padding-left:15%;
+    /* text-align: center; */
+  }
+  .name{
+    color:rgb(119, 115, 115);
+  }
+  .address{
+    color: rgb(11, 11, 194);
+  }
+  #mapWrap{
+    margin:0 50px;
+    height: 80vh;
+    display: flex;
+    flex-direction: row;
+  }
+  </style>
+</head>
+<body>
+    <h3 class='test'>Test Map</h3>
+    <div id="mapWrap">
+      <div id="map"></div>
+      <div id="rightBar">
+        <div class="review">
+          <div class="reviewInner">
+            <h4 class='name'>Ven y Verás</h4>
+            <h6 class='address'>Calle de Atocha, 94, Madrid</h6>
+            <h6 class='rating'>Rating: 3.5/5</h6>
+          </div>
+        </div>
+        <div class="review">
+          <div class="reviewInner">
+            <h4 class='name'>Ven y Verás</h4>
+            <h6 class='address'>Calle de Atocha, 94, Madrid</h6>
+            <h6 class='rating'>Rating: 3.5/5</h6>
+          </div>
+        </div>
+        <div class="review">
+          <div class="reviewInner">
+            <h4 class='name'>Ven y Verás</h4>
+            <h6 class='address'>Calle de Atocha, 94, Madrid</h6>
+            <h6 class='rating'>Rating: 3.5/5</h6>
+          </div>
+        </div>
+        <div class="review">
+          <div class="reviewInner">
+            <h4 class='name'>Ven y Verás</h4>
+            <h6 class='address'>Calle de Atocha, 94, Madrid</h6>
+            <h6 class='rating'>Rating: 3.5/5</h6>
+          </div>
+        </div>
+        
+    </div>
+    <div id="reviews"></div>
+  <script>
+    let pos = {lat: 0, lng: 0};
+    let map;
+    let restaurants = [];
+    let restaurantIDs = [];
+    let restaurantDetails = [];
+    let reviews = [];
+    let userLocationMarker;
+    let markers = [];
+    let mapBounds;
+
+// ==============================================================//
+        //===== SET INITIAL MAP AND USER POSITION =====//
+// ==============================================================//
+
+  setInitial = () => {
+    if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(initMap);
+  } else {
+    console.log("Geolocation is not supported by this browser.");
+  }
+  }
+  
+initMap = (position) => {
+  pos = {
+    lat: position.coords.latitude,
+    lng: position.coords.longitude
+  }
+  console.log(pos)
+  map = new google.maps.Map(document.getElementById('map'), {zoom: 16, center: pos, streetViewControl: false,});
+  userLocationMarker = new google.maps.Marker({
+  position: pos, 
+  map: map,
+  icon: {
+      path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+      fillColor: 'blue',
+      fillOpacity: 0.5,
+      scale: 06,
+      strokeColor: 'blue',
+      strokeWeight: 1,
+      zIndex: 1
+    },
+    animation: google.maps.Animation.DROP,
+  });
+  setTimeout(function(){bounceyBounce(userLocationMarker)}, 2000)
+  // setTimeout(showPins, 1500);//// COMMENTED OUT TO LIMIT CALLS DURING DEV
+  
+
+  // DISABLED TO STOP MULTI-REQUESTS//
+
+  // map.addListener('dragend', function () {
+  // showPins()
+  // });
+  // map.addListener('zoom_changed', function () {
+  // showPins()
+  // });
+  
+} 
+
+// ==============================================================//
+//===== BOUNCE AND OFFSET REPEATED BOUNCE MARKER ANIMATIONS =====//
+// ==============================================================//
+
+bouncey = (marker) => {
+  marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(function () {
+      marker.setAnimation(null)
+    }, 1400);
+  }
+bounceyBounce = (marker) => {
+  bouncey(marker)
+  setInterval(function(){bouncey(marker)}, 5000)
+}
+
+// ==============================================================//
+  //===== GET RESTAURANTS WITHIN MAP BOUNDS, PLACE MARKERS=====//
+// ==============================================================//
+
+
+clearMarkers = () => {
+  for (let i = 0; i < markers.length; i++) {
+    if (markers[i]) {
+        markers[i].setMap(null);}
+  }
+  markers = [];
+}
+
+getIDs = () => {
+
+const places = new google.maps.places.PlacesService(map);
+mapBounds = map.getBounds();
+restaurants = [];
+setTimeout(clearMarkers, 500)
+
+// var request = { bounds: mapBounds, type: ['restaurant']}; //// COMMENTED OUT TO LIMIT CALLS DURING DEV
+var request = { location: pos, radius: 15, type: ['restaurant']};
+places.nearbySearch(request, callback);
+function callback(results, status, next_page_token) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+  for (var i = 0; i < results.length; i++) {
+    var place = results[i];
+    restaurants.push(results[i]);
+    restaurantIDs.push(results[i].place_id)}}
+  }
+}
+
+
+// ==============================================================//
+        //===== CREATE PINS AND SHOW THEM ON MAP =====//
+// ==============================================================//
+
+
+dropPinsNotBombs = () => {
+  for (var i = 0; i < restaurants.length; i++) {
+  dropPin({lat: restaurants[i].geometry.location.lat(), lng: restaurants[i].geometry.location.lng()}, i * 50, restaurants[i].place_id, i)}
+  console.log('droppin')
+}
+
+function dropPin(position, timeout, id, index) {
+  window.setTimeout(function() {
+    markers.push(new google.maps.Marker({
+      id:id,
+      index: index,
+      position: position,
+      map: map,icon: {
+      path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+      fillColor: 'red',
+      fillOpacity: 0.5,
+      scale: 06,
+      strokeColor: 'red',
+      strokeWeight: 1,
+      zIndex: 1
+    },
+      animation: google.maps.Animation.DROP
+    }));
+  }, timeout);
+}
+
+showPins = () => {
+  getIDs();
+  setTimeout(dropPinsNotBombs, 600);
+  setTimeout(updateListeners, 800);
+}
+
+
+// ================================================================//
+//===== GET RESTAURANT DETAILS AND ADD THEM TO RESTAURANT OBJ=====//
+// ================================================================//
+
+getDeetz = (id, index) => {
+  var request = {
+    placeId: id, index,
+    fields: ['name', 'formatted_address', 'formatted_phone_number', 'review']
+  }
+  const service = new google.maps.places.PlacesService(map)
+  service.getDetails(request, callback);
+  function callback(place, status) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+    // restaurantDetails.push(place);
+    restaurants[index].formatted_address = place.formatted_address;
+    restaurants[index].formatted_phone_number = place.formatted_phone_number;
+    restaurants[index].reviews = place.reviews;
+  } else {console.log(status)}
+ }
+}
+
+
+setDeetz = ()  => {
+  for (var i = 0; i < restaurantIDs.length; i++){
+    setTimeout(getDeetz(restaurantIDs[i]),100)}
+}
+
+
+// ==============================================================//
+    //===== ADD LISTENERS TO MARKERS UPON SCROLL OR ZOOM =====//
+// ==============================================================//
+
+updateListeners = () => {markers.forEach(marker =>{
+  var markerID;
+  var contentString = '';
+  var infowindow;
+  
+  marker.addListener('mouseover', function() {  
+    markerID = this.index
+    contentString = restaurants[markerID].name
+    infowindow = new google.maps.InfoWindow({content: contentString});
+    infowindow.className='infowindow';
+    infowindow.open(map, marker);
+  });
+
+  marker.addListener('mouseout', function() {
+  infowindow.close(map, marker);
+  });
+
+  marker.addListener('click', function(){
+    console.log(this.id);
+    getDeetz(this.id, this.index)
+  })
+
+})
+}
+
+var reviewDivs = Array.from(document.getElementsByClassName('review'))
+
+reviewDivs.forEach(div => {
+  div.addEventListener('mouseenter', function(){
+    console.log('review')
+  })
+})
+
+
+  </script>
+
+
+
+<!-- 
+
+
+
+  createMarker = (place) => {
+// var marker = new google.maps.Marker({
+//   position: place.geometry.location,
+//   map: map});
+// markers.push(marker)
+// }
+
+function drop() {
+        clearMarkers();
+        for (var i = 0; i < neighborhoods.length; i++) {
+          addMarkerWithTimeout(neighborhoods[i], i * 200);
+        }
+      }
+
+      function addMarkerWithTimeout(position, timeout) {
+        window.setTimeout(function() {
+          markers.push(new google.maps.Marker({
+            position: position,
+            map: map,
+            animation: google.maps.Animation.DROP
+          }));
+        }, timeout);
+      }
+
+      function clearMarkers() {
+        for (var i = 0; i < markers.length; i++) {
+          markers[i].setMap(null);
+        }
+        markers = [];
+      }
+
+
+  locationsTest = [
+        {lat: 40.4027242, lng: -3.697458900000015},
+        {lat: 40.4045637, lng: -3.6966460999999526},
+        {lat: 40.4032826, lng: -3.699296199999935},
+        {lat: 40.4040998, lng: -3.694452599999977}
+      ];
+
+
+ -->
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlQE9vOQFWaa6ZeidzikJq9Ry0PpO6gzk&libraries=places&callback=setInitial"></script> 
+</body>
+</html>

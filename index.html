@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #map {
+        height: 80vh;
+        width: 100%; 
+       }
+    </style>
+  </head>
+  <body>
+    <h3>My Google Maps Demo</h3>
+    <div id="map"></div>
+<script>
+
+
+
+var map
+var userLat = 0;
+var userLong = 0;
+var userLocation = {};
+const  resultArray = [];
+const  resultArray2 = [];
+
+function getJson() {
+    // var location = location.id
+    fetch(`https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJN1t_tDeuEmsRUsoyG83frY4&fields=name,rating,formatted_phone_number,review,user_ratings_total&key=AIzaSyDlQE9vOQFWaa6ZeidzikJq9Ry0PpO6gzk`)
+
+    .then(response => {
+      return response.json()
+    })
+    .then(data => {
+      data.forEach(result => console.log(result))
+    })
+}
+
+function createMarker(place) {
+
+new google.maps.Marker({
+    position: place.geometry.location,
+    map: map,
+    icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor: 'blue',
+        fillOpacity: 0.3,
+        scale: 20,
+        strokeColor: 'blue',
+        strokeWeight: 1,
+        zIndex: 1
+    },
+});
+}
+
+
+function setInitial() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(initMap);
+  } else {
+    console.log("Geolocation is not supported by this browser.");
+  }
+}
+
+function initMap(position) {
+  console.log("Latitude: " + position.coords.latitude + " Longitude: " + position.coords.longitude);
+  userLat = position.coords.latitude;
+  userLong = position.coords.longitude;
+  userLocation = {lat: userLat, lng: userLong};
+  map = new google.maps.Map(
+  document.getElementById('map'), {zoom: 16, center: userLocation});
+  var marker = new google.maps.Marker({position: userLocation, map: map});
+
+ 
+  var request = {
+    location: userLocation,
+    radius: '1500',
+    type: ['restaurant']
+  };
+
+  service = new google.maps.places.PlacesService(map);
+  service.nearbySearch(request, callback);
+  function callback(results, status) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+    for (var i = 0; i < results.length; i++) {
+      var place = results[i];
+      createMarker(results[i]);
+      resultArray.push(results[i].place_id);
+    }
+  }
+}
+
+
+}
+
+
+
+function getReviews(id) {
+  var request = {
+  placeId: id,
+  fields: ['name', 'rating', 'formatted_phone_number', 'geometry','reviews']
+  };
+  service.getDetails(request, callback);
+
+  function callback(place, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      console.log(place)
+      resultArray2.push(place)
+    }
+  }
+}
+
+function dothething() {
+  resultArray.forEach(result => {
+    getReviews(result)
+  })
+}
+
+// function getReviews() {
+//   var request = {
+//   placeId: 'ChIJN1t_tDeuEmsRUsoyG83frY4',
+//   fields: ['name', 'rating', 'formatted_phone_number', 'geometry','reviews']
+//   };
+//   service.getDetails(request, callback);
+
+//   function callback(place, status) {
+//     if (status == google.maps.places.PlacesServiceStatus.OK) {
+//       console.log(place)
+//       resultArray2.push(place)
+//     }
+//   }
+// }
+
+
+function search() {
+                let search = {
+                    bounds: map.getBounds(),
+                    type: ['restaurant']
+                };
+                places.nearbySearch(search, function (results, status, pagination) {
+
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        clearResults();
+                        clearMarkers();
+
+                        googleRestaurants = [];
+                        for (let i = 0; i < results.length; i++) {
+                            googleRestaurants.push(results[i]);
+                        }
+                        for (let i = 0; i < results.length; i++) {
+                            markers[i] = new google.maps.Marker({
+                                position: results[i].geometry.location,
+                                placeId: results[i].id,
+                                //animation: google.maps.Animation.DROP,
+                                icon: createMarkerStars(googleRestaurants[i]),
+                                zIndex: 52,
+                            });}}})}
+
+
+
+            
+            function search() {
+                let search = {
+                    bounds: map.getBounds(),
+                    type: ['restaurant']
+                };
+                service.nearbySearch(search, function (results, status, pagination) {
+
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        
+
+                        googleRestaurants = [];
+                        for (let i = 0; i < results.length; i++) {
+                            googleRestaurants.push(results[i]);
+                        }
+                        for (let i = 0; i < results.length; i++) {
+                            markers[i] = new google.maps.Marker({
+                                position: results[i].geometry.location,
+                                placeId: results[i].id,
+                                //animation: google.maps.Animation.DROP,
+                                icon: results[i].icon,
+                                zIndex: 52,
+                            });}}})}
+
+
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlQE9vOQFWaa6ZeidzikJq9Ry0PpO6gzk&libraries=places&callback=setInitial"></script>
+</body>
+</html>
+<!-- 
+40.4044039
+-3.6966362
+
+https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=-40.4044039,-3.6966362&radius=1500&type=restaurant&keyword=cruise&key=AIzaSyDlQE9vOQFWaa6ZeidzikJq9Ry0PpO6gzk -->
+
+
+
