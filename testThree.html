@@ -62,7 +62,8 @@
     <div id="mapWrap">
       <div id="map"></div>
       <div id="rightBar">
-        <div class="review">
+
+        <!-- <div class="review">
           <div class="reviewInner">
             <h4 class='name'>Ven y Verás</h4>
             <h6 class='address'>Calle de Atocha, 94, Madrid</h6>
@@ -89,7 +90,7 @@
             <h6 class='address'>Calle de Atocha, 94, Madrid</h6>
             <h6 class='rating'>Rating: 3.5/5</h6>
           </div>
-        </div>
+        </div> -->
         
     </div>
     <div id="reviews"></div>
@@ -122,7 +123,244 @@ initMap = (position) => {
     lng: position.coords.longitude
   }
   console.log(pos)
-  map = new google.maps.Map(document.getElementById('map'), {zoom: 16, center: pos, streetViewControl: false,});
+  var styledMapType = new google.maps.StyledMapType(
+    [
+    {
+        "featureType": "administrative.locality",
+        "elementType": "all",
+        "stylers": [
+            {
+                "hue": "#ff0200"
+            },
+            {
+                "saturation": 7
+            },
+            {
+                "lightness": 19
+            },
+            {
+                "visibility": "on"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.locality",
+        "elementType": "labels.text",
+        "stylers": [
+            {
+                "visibility": "on"
+            },
+            {
+                "saturation": "-3"
+            }
+        ]
+    },
+    {
+        "featureType": "administrative.locality",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#748ca3"
+            }
+        ]
+    },
+    {
+        "featureType": "landscape",
+        "elementType": "all",
+        "stylers": [
+            {
+                "hue": "#ff0200"
+            },
+            {
+                "saturation": -100
+            },
+            {
+                "lightness": 100
+            },
+            {
+                "visibility": "simplified"
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "all",
+        "stylers": [
+            {
+                "hue": "#ff0200"
+            },
+            {
+                "saturation": "23"
+            },
+            {
+                "lightness": "20"
+            },
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "poi.school",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#ffdbda"
+            },
+            {
+                "saturation": "0"
+            },
+            {
+                "visibility": "on"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "hue": "#ff0200"
+            },
+            {
+                "saturation": "100"
+            },
+            {
+                "lightness": 31
+            },
+            {
+                "visibility": "simplified"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#f39247"
+            },
+            {
+                "saturation": "0"
+            }
+        ]
+    },
+    {
+        "featureType": "road",
+        "elementType": "labels",
+        "stylers": [
+            {
+                "hue": "#008eff"
+            },
+            {
+                "saturation": -93
+            },
+            {
+                "lightness": 31
+            },
+            {
+                "visibility": "on"
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "visibility": "on"
+            },
+            {
+                "color": "#ffe5e5"
+            },
+            {
+                "saturation": "0"
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "elementType": "labels",
+        "stylers": [
+            {
+                "hue": "#bbc0c4"
+            },
+            {
+                "saturation": -93
+            },
+            {
+                "lightness": -2
+            },
+            {
+                "visibility": "simplified"
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "elementType": "labels.text",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "road.local",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "hue": "#ff0200"
+            },
+            {
+                "saturation": -90
+            },
+            {
+                "lightness": -8
+            },
+            {
+                "visibility": "simplified"
+            }
+        ]
+    },
+    {
+        "featureType": "transit",
+        "elementType": "all",
+        "stylers": [
+            {
+                "hue": "#e9ebed"
+            },
+            {
+                "saturation": 10
+            },
+            {
+                "lightness": 69
+            },
+            {
+                "visibility": "on"
+            }
+        ]
+    },
+    {
+        "featureType": "water",
+        "elementType": "all",
+        "stylers": [
+            {
+                "hue": "#e9ebed"
+            },
+            {
+                "saturation": -78
+            },
+            {
+                "lightness": 67
+            },
+            {
+                "visibility": "simplified"
+            }
+        ]
+    }
+]);
+  map = new google.maps.Map(document.getElementById('map'), {zoom: 18, center: pos, streetViewControl: false, mapTypeControlOptions: {mapTypeIds: []},});
   userLocationMarker = new google.maps.Marker({
   position: pos, 
   map: map,
@@ -136,7 +374,9 @@ initMap = (position) => {
       zIndex: 1
     },
     animation: google.maps.Animation.DROP,
-  });
+    });
+    map.mapTypes.set('styled_map', styledMapType);
+    map.setMapTypeId('styled_map');
   setTimeout(function(){bounceyBounce(userLocationMarker)}, 2000)
   // setTimeout(showPins, 1500);//// COMMENTED OUT TO LIMIT CALLS DURING DEV
   
@@ -197,6 +437,7 @@ function callback(results, status, next_page_token) {
     restaurants.push(results[i]);
     restaurantIDs.push(results[i].place_id)}}
   }
+  
 }
 
 
@@ -235,6 +476,27 @@ showPins = () => {
   getIDs();
   setTimeout(dropPinsNotBombs, 600);
   setTimeout(updateListeners, 800);
+  setTimeout(function(){
+    for (var i = 0; i<restaurants.length; i++){
+    addReviewWithTimeout(restaurants[i],i*250)
+  }
+  },600)
+}
+
+// showPins = () => {
+//   getIDs();
+//   setTimeout(dropPinsNotBombs, 600);
+//   setTimeout(updateListeners, 800);
+//   setTimeout(function(){
+//     restaurants.forEach(restaurant => {
+//   createReviewDiv(restaurant)})
+//   },400)
+// }
+
+addReviewWithTimeout= (place, timeout) => {
+  setTimeout(function(){
+    createReviewDiv(place)
+  },timeout)
 }
 
 
@@ -299,6 +561,10 @@ updateListeners = () => {markers.forEach(marker =>{
               //===== SIDE BAR REVIEW DIVS =====//
 // ==============================================================//
 
+restaurants.forEach(restaurant => {
+  createReviewDiv(restaurant)
+})
+
 var reviewDivs = Array.from(document.getElementsByClassName('review'))
 reviewDivs.forEach(div => {
   div.addEventListener('mouseenter', function(){
@@ -313,10 +579,10 @@ createReviewDiv = (place) => {
   name.appendChild(document.createTextNode(place.name))
   var address = document.createElement('h6');
   address.classList.add('address')
-  address.appendChild(document.createTextNode(place.address))
+  address.appendChild(document.createTextNode(place.vicinity))
   var rating = document.createElement('h6');
   rating.classList.add('rating')
-  rating.appendChild(document.createTextNode(place.rating))
+  rating.appendChild(document.createTextNode('rating: ' + place.rating + '/5'))
 
   var reviewDiv = document.createElement("div");
   reviewDiv.classList.add("review");
